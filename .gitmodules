@@ -1,0 +1,6 @@
+[submodule "dev-container"]
+	path = dev-container
+	url = https://github.com/myInstagramAlternative/dev-container.git
+[submodule "dotconfig"]
+	path = dotconfig
+	url = https://github.com/myInstagramAlternative/.config.git

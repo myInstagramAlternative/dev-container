@@ -93,6 +93,7 @@ RUN wget "https://go.dev/dl/go${GOLANG_VERSION}.linux-${TARGETARCH}.tar.gz" \
 ENV PATH=$PATH:/usr/local/go/bin
 
 # Install Rust
+ENV HOME=/root
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable \
     && . $HOME/.cargo/env \
     && rustup component add rust-analyzer clippy rustfmt
@@ -176,6 +177,14 @@ ENV PATH="$GOPATH/bin:$PATH"
 
 # Create workspace directory
 WORKDIR /workspace
+
+# Copy dotconfig files to appropriate locations
+# Note: dotconfig is a git submodule containing your dot files
+COPY dotconfig/nushell /root/.config/nushell
+COPY dotconfig/nvim /root/.config/nvim
+COPY dotconfig/helix /root/.config/helix
+COPY dotconfig/tmux /root/.config/tmux
+COPY dotconfig/atuin /root/.config/atuin
 
 # Set default shell to nushell
 SHELL ["/usr/local/bin/nu", "-c"]
