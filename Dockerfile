@@ -204,10 +204,11 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 ENV POETRY_VERSION=1.8.5
 RUN curl -sSL https://install.python-poetry.org | python3 -
 
-# Create .nu.nu stub and initialize starship as jesteibice
+# Create .nu.nu stub, initialize starship and zoxide as jesteibice
 RUN touch $HOME/.nu.nu \
     && mkdir -p $HOME/.cache/starship \
-    && starship init nu > $HOME/.cache/starship/init.nu
+    && starship init nu > $HOME/.cache/starship/init.nu \
+    && zoxide init nushell > $HOME/.zoxide.nu
 
 # Set up PATH for user tools
 ENV PATH=$HOME/.cargo/bin:$HOME/.local/bin:$PATH
