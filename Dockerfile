@@ -75,6 +75,10 @@ RUN case "${TARGETARCH}" in \
     && rm zoxide-${ZOXIDE_VERSION}-${dockerArch}.tar.gz \
     && install zoxide /usr/local/bin/
 
+# Install atuin (shell history)
+RUN curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh \
+    && mv /root/.local/bin/atuin /usr/local/bin/
+
 # Install YQ
 ENV YQ_VERSION=4.47.2
 RUN wget https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_${TARGETARCH} -O /usr/local/bin/yq \
