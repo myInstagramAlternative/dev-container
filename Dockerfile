@@ -152,11 +152,12 @@ RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
 RUN az bicep install
 
 # Copy dotconfig files
-COPY dotconfig/nushell /root/.config/nushell
-COPY dotconfig/nvim /root/.config/nvim
-COPY dotconfig/helix /root/.config/helix
-COPY dotconfig/tmux /root/.config/tmux
-COPY dotconfig/atuin /root/.config/atuin
+RUN mkdir -p /root/.config && \
+    if [ -d dotconfig/nushell ]; then cp -r dotconfig/nushell /root/.config/; fi && \
+    if [ -d dotconfig/nvim ]; then cp -r dotconfig/nvim /root/.config/; fi && \
+    if [ -d dotconfig/helix ]; then cp -r dotconfig/helix /root/.config/; fi && \
+    if [ -d dotconfig/tmux ]; then cp -r dotconfig/tmux /root/.config/; fi && \
+    if [ -d dotconfig/atuin ]; then cp -r dotconfig/atuin /root/.config/; fi
 
 # Create stub .nu.nu file if it doesn't exist (will be overwritten by volume mount if local file exists)
 RUN touch ~/.nu.nu
