@@ -1,0 +1,28 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "allowPostUpgradeCommandTemplating": true,
+  "regexManagers": [
+    {
+      "fileMatch": ["^Dockerfile$"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>.*?) depName=(?<depName>.*?)( versioning=(?<versioning>.*?))?( extractVersion=(?<extractVersion>.*?))?( registryUrl=(?<registryUrl>.*?))?\\sENV .*?_VERSION=(?<currentValue>.*)\\s"
+      ],
+      "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}"
+    }
+  ],
+  "packageRules": [
+    {
+      "matchPackagePatterns": [".*"],
+      "groupName": "All Dependencies",
+      "postUpgradeTasks": {
+        "commands": [
+          "chmod 500 renovating.sh; bash renovating.sh {{{depName}}} {{{currentVersion}}} {{{newVersion}}}"
+        ],
+        "executionMode": "update",
+        "fileFilters": ["version.json", "version", "Dockerfile", "CHANGELOG.md"]
+      }
+    }
+  ],
+  "prHourlyLimit": 0,
+  "prConcurrentLimit": 0
+}
