@@ -22,6 +22,7 @@ RUN apt-get update && apt-get install -y \
     lsb-release \
     ca-certificates \
     git \
+    sudo \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -147,32 +148,6 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install fnm (Fast Node Manager)
-RUN curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell --install-dir /usr/local/bin
-
-# Install Rust (as root for now)
-ENV HOME=/root
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable \
-    && . $HOME/.cargo/env \
-    && rustup component add rust-analyzer clippy rustfmt
-ENV PATH=$PATH:/root/.cargo/bin
-
-# Install Python and pip
-RUN apt-get update \
-    && apt-get install -y python3 python3-pip python3-venv \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install UV (Astral's Python package manager)
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh \
-    && mv /root/.local/bin/uv /usr/local/bin/ \
-    && mv /root/.local/bin/uvx /usr/local/bin/
-
-# Install Python Poetry
-ENV POETRY_VERSION=1.8.5
-RUN curl -sSL https://install.python-poetry.org | python3 - \
-    && mv /root/.local/bin/poetry /usr/local/bin/
-
 # Install Terraform
 RUN wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor > /usr/share/keyrings/hashicorp-archive-keyring.gpg \
     && echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/hashicorp.list \
@@ -186,6 +161,12 @@ RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
 
 # Install Bicep CLI
 RUN az bicep install
+
+# Install Python
+RUN apt-get update \
+    && apt-get install -y python3 python3-pip python3-venv \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # Create jesteibice user
 RUN useradd -m -s /usr/local/bin/nu -G sudo jesteibice \
@@ -206,19 +187,38 @@ RUN mkdir -p /home/jesteibice/.config && \
             fi; \
         done; \
     fi && \
-    # Create .nu.nu stub
-    touch /home/jesteibice/.nu.nu && \
-    # Initialize starship for nushell
-    mkdir -p /home/jesteibice/.cache/starship && \
-    starship init nu > /home/jesteibice/.cache/starship/init.nu && \
     # Fix ownership
     chown -R jesteibice:jesteibice /home/jesteibice
 
+# Switch to jesteibice user for user-specific installations
+USER jesteibice
+ENV HOME=/home/jesteibice
+
+# Install fnm (Fast Node Manager) as jesteibice
+RUN curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell --install-dir $HOME/.local/bin
+
+# Install Rust as jesteibice
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable \
+    && . $HOME/.cargo/env \
+    && rustup component add rust-analyzer clippy rustfmt
+
+# Install UV (Astral's Python package manager) as jesteibice
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Install Python Poetry as jesteibice
+ENV POETRY_VERSION=1.8.5
+RUN curl -sSL https://install.python-poetry.org | python3 -
+
+# Create .nu.nu stub and initialize starship as jesteibice
+RUN touch $HOME/.nu.nu \
+    && mkdir -p $HOME/.cache/starship \
+    && starship init nu > $HOME/.cache/starship/init.nu
+
+# Set up PATH for user tools
+ENV PATH=$HOME/.cargo/bin:$HOME/.local/bin:$PATH
+
 # Set default shell to nushell
 SHELL ["/usr/local/bin/nu", "-c"]
-
-# Switch to jesteibice user
-USER jesteibice
 
 # Set working directory
 WORKDIR /home/jesteibice
