@@ -77,7 +77,7 @@ RUN case "${TARGETARCH}" in \
 
 # Install atuin (shell history)
 RUN curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh \
-    && mv /root/.local/bin/atuin /usr/local/bin/
+    && mv /root/.atuin/bin/atuin /usr/local/bin/
 
 # Install YQ
 ENV YQ_VERSION=4.47.2
