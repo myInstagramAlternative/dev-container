@@ -125,6 +125,16 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 
+# Install fnm (Fast Node Manager)
+ENV FNM_VERSION=1.38.1
+RUN case "${TARGETARCH}" in \
+    amd64) dockerArch='x86_64-unknown-linux-musl' ;; \
+    arm64) dockerArch='aarch64-unknown-linux-musl' ;; \
+    *) echo >&2 "error: unsupported architecture (${TARGETARCH})"; exit 1 ;; \
+    esac; \
+    curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell --install-dir /usr/local/bin \
+    && ln -sf /usr/local/bin/fnm /usr/local/bin/fnm
+
 # Install Golang
 ENV GOLANG_VERSION=1.23.5
 RUN wget "https://go.dev/dl/go${GOLANG_VERSION}.linux-${TARGETARCH}.tar.gz" \
@@ -157,7 +167,15 @@ RUN mkdir -p /root/.config && \
     if [ -d dotconfig/nvim ]; then cp -r dotconfig/nvim /root/.config/; fi && \
     if [ -d dotconfig/helix ]; then cp -r dotconfig/helix /root/.config/; fi && \
     if [ -d dotconfig/tmux ]; then cp -r dotconfig/tmux /root/.config/; fi && \
-    if [ -d dotconfig/atuin ]; then cp -r dotconfig/atuin /root/.config/; fi
+    if [ -d dotconfig/atuin ]; then cp -r dotconfig/atuin /root/.config/; fi && \
+    # Create mod.nu files for nushell modules if missing
+    if [ -d /root/.config/nushell/modules ]; then \
+        for dir in /root/.config/nushell/modules/*/; do \
+            if [ -d "$dir" ] && [ ! -f "$dir/mod.nu" ]; then \
+                touch "$dir/mod.nu"; \
+            fi; \
+        done; \
+    fi
 
 # Create stub .nu.nu file if it doesn't exist (will be overwritten by volume mount if local file exists)
 RUN touch ~/.nu.nu
