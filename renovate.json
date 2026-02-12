@@ -1,6 +1,5 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "allowPostUpgradeCommandTemplating": true,
   "git-submodules": {
     "enabled": true
   },
@@ -16,14 +15,7 @@
   "packageRules": [
     {
       "matchPackagePatterns": [".*"],
-      "groupName": "All Dependencies",
-      "postUpgradeTasks": {
-        "commands": [
-          "chmod 500 renovating.sh; bash renovating.sh {{{depName}}} {{{currentVersion}}} {{{newVersion}}}"
-        ],
-        "executionMode": "update",
-        "fileFilters": ["version.json", "version", "Dockerfile", "CHANGELOG.md"]
-      }
+      "groupName": "All Dependencies"
     }
   ],
   "prHourlyLimit": 0,
