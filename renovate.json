@@ -1,6 +1,9 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "allowPostUpgradeCommandTemplating": true,
+  "allowedPostUpgradeCommands": [
+    "^chmod 500 renovating.sh; bash renovating.sh.*"
+  ],
   "git-submodules": {
     "enabled": true
   },
