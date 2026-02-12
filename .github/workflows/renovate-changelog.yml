@@ -1,0 +1,74 @@
+name: Update Changelog on Renovate PRs
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches: [main]
+
+jobs:
+  update-changelog:
+    runs-on: ubuntu-latest
+    if: github.actor == 'renovate[bot]' || startsWith(github.head_ref, 'renovate/')
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+          submodules: recursive
+      
+      - name: Setup Git
+        run: |
+          git config user.name "Renovate Changelog Bot"
+          git config user.email "renovate@localhost"
+      
+      - name: Get changed dependencies
+        id: changes
+        run: |
+          # Get the list of changed ENV lines in Dockerfile
+          CHANGES=$(git diff ${{ github.event.pull_request.base.sha }} ${{ github.sha }} -- Dockerfile | grep -E '^[+-]ENV.*_VERSION=' | grep '^+ENV' || true)
+          
+          # Parse each change
+          echo "changes<<EOF" >> $GITHUB_OUTPUT
+          while IFS= read -r line; do
+            if [[ $line =~ ENV\ ([A-Z_]+)_VERSION=([0-9.]+) ]]; then
+              DEP_NAME="${BASH_REMATCH[1]}"
+              NEW_VERSION="${BASH_REMATCH[2]}"
+              # Convert ENV var name to package name (e.g., NUSHELL_VERSION -> nushell)
+              DEP_NAME_LOWER=$(echo "$DEP_NAME" | tr '[:upper:]' '[:lower:]' | sed 's/_version//')
+              echo "$DEP_NAME_LOWER $NEW_VERSION" >> $GITHUB_OUTPUT
+            fi
+          done <<< "$CHANGES"
+          echo "EOF" >> $GITHUB_OUTPUT
+      
+      - name: Update version and changelog
+        if: steps.changes.outputs.changes != ''
+        run: |
+          chmod +x renovating.sh
+          
+          # Read each dependency update
+          while IFS=' ' read -r dep_name new_version; do
+            if [ -n "$dep_name" ] && [ -n "$new_version" ]; then
+              # Get old version from base branch
+              OLD_VERSION=$(git show ${{ github.event.pull_request.base.sha }}:Dockerfile | grep -E "ENV.*${dep_name}.*_VERSION=" | sed 's/.*=//' || echo "unknown")
+              
+              # Run renovating script
+              bash renovating.sh "$dep_name" "$OLD_VERSION" "$new_version"
+            fi
+          done <<< "${{ steps.changes.outputs.changes }}"
+          
+          # Clean up marker file if exists
+          rm -f updated
+      
+      - name: Commit changes
+        run: |
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: update version and changelog for Renovate dependencies"
+            git push origin ${{ github.head_ref }}
+          fi
