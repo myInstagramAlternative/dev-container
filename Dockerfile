@@ -174,11 +174,7 @@ RUN useradd -m -s /usr/local/bin/nu -G sudo jesteibice \
 
 # Copy dotconfig files to jesteibice's home
 RUN mkdir -p /home/jesteibice/.config && \
-    if [ -d dotconfig/nushell ]; then cp -r dotconfig/nushell /home/jesteibice/.config/; fi && \
-    if [ -d dotconfig/nvim ]; then cp -r dotconfig/nvim /home/jesteibice/.config/; fi && \
-    if [ -d dotconfig/helix ]; then cp -r dotconfig/helix /home/jesteibice/.config/; fi && \
-    if [ -d dotconfig/tmux ]; then cp -r dotconfig/tmux /home/jesteibice/.config/; fi && \
-    if [ -d dotconfig/atuin ]; then cp -r dotconfig/atuin /home/jesteibice/.config/; fi && \
+    cp -r dotconfig/* /home/jesteibice/.config/ && \
     # Create mod.nu files for nushell modules if missing
     if [ -d /home/jesteibice/.config/nushell/modules ]; then \
         for dir in /home/jesteibice/.config/nushell/modules/*/; do \
