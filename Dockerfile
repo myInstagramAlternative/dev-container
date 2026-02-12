@@ -165,8 +165,8 @@ RUN apt-get update \
 
 # Install UV (Astral's Python package manager)
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh \
-    && mv /root/.cargo/bin/uv /usr/local/bin/ \
-    && mv /root/.cargo/bin/uvx /usr/local/bin/
+    && mv /root/.local/bin/uv /usr/local/bin/ \
+    && mv /root/.local/bin/uvx /usr/local/bin/
 
 # Install Python Poetry
 ENV POETRY_VERSION=1.8.5
