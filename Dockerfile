@@ -60,7 +60,7 @@ RUN case "${TARGETARCH}" in \
     && rm -rf nvim-linux-${dockerArch}
 
 # Install opencode
-RUN curl -fsSL https://opencode.ai/install | sh
+RUN curl -fsSL https://opencode.ai/install | bash
 
 # Install Starship
 ENV STARSHIP_VERSION=1.23.0
