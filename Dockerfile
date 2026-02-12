@@ -172,20 +172,17 @@ RUN apt-get update \
 RUN useradd -m -s /usr/local/bin/nu -G sudo jesteibice \
     && echo "jesteibice ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
-# Copy dotconfig files to jesteibice's home (if dotconfig exists)
-RUN mkdir -p /home/jesteibice/.config && \
-    if [ -d "dotconfig" ] && [ "$(ls -A dotconfig 2>/dev/null)" ]; then \
-        cp -r dotconfig/* /home/jesteibice/.config/; \
-    fi && \
-    # Create mod.nu files for nushell modules if missing
-    if [ -d /home/jesteibice/.config/nushell/modules ]; then \
+# Copy dotconfig files to jesteibice's home
+COPY dotconfig/ /home/jesteibice/.config/
+
+# Create mod.nu files for nushell modules if missing
+RUN if [ -d /home/jesteibice/.config/nushell/modules ]; then \
         for dir in /home/jesteibice/.config/nushell/modules/*/; do \
             if [ -d "$dir" ] && [ ! -f "$dir/mod.nu" ]; then \
                 touch "$dir/mod.nu"; \
             fi; \
         done; \
     fi && \
-    # Fix ownership
     chown -R jesteibice:jesteibice /home/jesteibice
 
 # Switch to jesteibice user for user-specific installations
