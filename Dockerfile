@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     wget \
     gpg \
-    
+    openssh-server \
     software-properties-common \
     build-essential \
     dnsutils \
@@ -33,6 +33,20 @@ RUN add-apt-repository ppa:git-core/ppa -y \
     && apt-get install -y git \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+# Configure git and SSH
+RUN git config --system --add safe.directory '*' \
+    && mkdir -p /run/sshd \
+    && sed -i \
+        -e 's/#PubkeyAuthentication yes/PubkeyAuthentication yes/' \
+        -e 's/#PasswordAuthentication yes/PasswordAuthentication no/' \
+        -e 's/#ChallengeResponseAuthentication yes/ChallengeResponseAuthentication no/' \
+        -e 's/#AllowTcpForwarding yes/AllowTcpForwarding yes/' \
+        -e 's/#GatewayPorts no/GatewayPorts yes/' \
+        /etc/ssh/sshd_config \
+    && echo "PasswordAuthentication no" >> /etc/ssh/sshd_config \
+    && echo "ChallengeResponseAuthentication no" >> /etc/ssh/sshd_config \
+    && ssh-keygen -A
 
 # Install Nushell
 ENV NUSHELL_VERSION=0.103.0
@@ -223,6 +237,14 @@ SHELL ["/usr/local/bin/nu", "-c"]
 
 # Set working directory
 WORKDIR /home/jesteibice
+
+# Expose SSH port
+EXPOSE 22
+
+# Entrypoint starts sshd then runs CMD
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN sudo chmod +x /usr/local/bin/docker-entrypoint.sh
+ENTRYPOINT ["docker-entrypoint.sh"]
 
 # Default command
 CMD ["/usr/local/bin/nu"]
