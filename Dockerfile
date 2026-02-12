@@ -132,8 +132,7 @@ RUN case "${TARGETARCH}" in \
     arm64) dockerArch='aarch64-unknown-linux-musl' ;; \
     *) echo >&2 "error: unsupported architecture (${TARGETARCH})"; exit 1 ;; \
     esac; \
-    curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell --install-dir /usr/local/bin \
-    && ln -sf /usr/local/bin/fnm /usr/local/bin/fnm
+    curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell --install-dir /usr/local/bin
 
 # Install Golang
 ENV GOLANG_VERSION=1.23.5
