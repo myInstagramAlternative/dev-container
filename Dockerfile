@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     wget \
     gpg \
-    gosu \
+    
     software-properties-common \
     build-essential \
     dnsutils \
@@ -217,13 +217,6 @@ RUN touch $HOME/.nu.nu \
 
 # Set up PATH for user tools
 ENV PATH=$HOME/.cargo/bin:$HOME/.local/bin:$PATH
-
-# Switch back to root for entrypoint
-USER root
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
-
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
 # Set default shell to nushell
 SHELL ["/usr/local/bin/nu", "-c"]
