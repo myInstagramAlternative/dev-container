@@ -1,6 +1,9 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "allowPostUpgradeCommandTemplating": true,
+  "git-submodules": {
+    "enabled": true
+  },
   "regexManagers": [
     {
       "fileMatch": ["^Dockerfile$"],
