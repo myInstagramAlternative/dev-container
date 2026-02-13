@@ -242,8 +242,7 @@ WORKDIR /home/jesteibice
 EXPOSE 22
 
 # Entrypoint starts sshd then runs CMD
-COPY docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+COPY --chmod=755 docker-entrypoint.sh /usr/local/bin/
 ENTRYPOINT ["docker-entrypoint.sh"]
 
 # Default command
