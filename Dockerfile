@@ -46,7 +46,9 @@ RUN git config --system --add safe.directory '*' \
         /etc/ssh/sshd_config \
     && echo "PasswordAuthentication no" >> /etc/ssh/sshd_config \
     && echo "ChallengeResponseAuthentication no" >> /etc/ssh/sshd_config \
-    && ssh-keygen -A
+    && ssh-keygen -A \
+    && chmod 755 /etc/ssh \
+    && chmod 644 /etc/ssh/ssh_host_*
 
 # Install Nushell
 ENV NUSHELL_VERSION=0.103.0
