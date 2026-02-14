@@ -209,6 +209,7 @@ ENV HOME=/home/jesteibice
 
 # renovate: datasource=opencode depName=opencode
 RUN curl -fsSL https://opencode.ai/install | bash -s -- --version 1.1.65
+ENV PATH="$HOME/.opencode/bin:$PATH"
 
 # Install fnm (Fast Node Manager) as jesteibice
 RUN curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell --install-dir $HOME/.local/bin
