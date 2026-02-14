@@ -77,9 +77,6 @@ RUN case "${TARGETARCH}" in \
     && mv nvim-linux-${dockerArch}/share/nvim/runtime/* /usr/local/share/nvim \
     && rm -rf nvim-linux-${dockerArch}
 
-# Install opencode
-RUN curl -fsSL https://opencode.ai/install | bash
-
 # Install zoxide
 ENV ZOXIDE_VERSION=0.9.8
 RUN case "${TARGETARCH}" in \
@@ -209,6 +206,9 @@ RUN if [ -d /home/jesteibice/.config/nushell/modules ]; then \
 # Switch to jesteibice user for user-specific installations
 USER jesteibice
 ENV HOME=/home/jesteibice
+
+# Install opencode as jesteibice
+RUN curl -fsSL https://opencode.ai/install | bash
 
 # Install fnm (Fast Node Manager) as jesteibice
 RUN curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell --install-dir $HOME/.local/bin
