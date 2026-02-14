@@ -207,8 +207,8 @@ RUN if [ -d /home/jesteibice/.config/nushell/modules ]; then \
 USER jesteibice
 ENV HOME=/home/jesteibice
 
-# Install opencode as jesteibice
-RUN curl -fsSL https://opencode.ai/install | bash
+# renovate: datasource=opencode depName=opencode
+RUN curl -fsSL https://opencode.ai/install | bash -s -- --version 1.1.65
 
 # Install fnm (Fast Node Manager) as jesteibice
 RUN curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell --install-dir $HOME/.local/bin
