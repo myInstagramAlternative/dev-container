@@ -7,20 +7,15 @@ if ! pgrep -x sshd > /dev/null; then
     sudo /usr/sbin/sshd
 fi
 
-# Optionally set the dev user's password at runtime, from a secret.
-# The password is never baked into the image; it comes from USER_PASSWORD
-# (e.g. a Kubernetes Secret / docker --env-file) or, preferably, from a file
-# via USER_PASSWORD_FILE (a mounted secret, keeps it out of `docker inspect`).
+# Optionally set the dev user's password at runtime, from a secret file only.
+# The password is never baked into the image and never passed as an env var.
+# Mount a secret and point USER_PASSWORD_FILE at it, e.g.
+#   docker:  -v ./user_password:/run/secrets/user_password:ro \
+#            -e USER_PASSWORD_FILE=/run/secrets/user_password
+#   k8s:     mount a Secret as a volume and set USER_PASSWORD_FILE to the file.
 DEV_USER="${DEV_USER:-jesteibice}"
-RUNTIME_PASSWORD=""
 if [ -n "${USER_PASSWORD_FILE:-}" ] && [ -r "${USER_PASSWORD_FILE}" ]; then
-    RUNTIME_PASSWORD="$(cat "${USER_PASSWORD_FILE}")"
-elif [ -n "${USER_PASSWORD:-}" ]; then
-    RUNTIME_PASSWORD="${USER_PASSWORD}"
-fi
-if [ -n "${RUNTIME_PASSWORD}" ]; then
-    printf '%s:%s\n' "${DEV_USER}" "${RUNTIME_PASSWORD}" | sudo chpasswd
-    unset RUNTIME_PASSWORD USER_PASSWORD
+    printf '%s:%s\n' "${DEV_USER}" "$(cat "${USER_PASSWORD_FILE}")" | sudo chpasswd
 fi
 
 # Execute the CMD
