@@ -1,3 +1,29 @@
+# syntax=docker/dockerfile:1
+
+# Build the rathole client from source, cross-compiled on the BUILDPLATFORM so
+# the arm64 image doesn't have to compile Rust under qemu emulation.
+# Pinned to rathole main (17 commits past the last release, v0.5.0).
+# Bump RATHOLE_REF by hand: renovate can't track a raw commit SHA cleanly.
+FROM --platform=$BUILDPLATFORM rust:1-bookworm AS rathole-builder
+ARG TARGETARCH
+ENV RATHOLE_REF=a292f7ed5402f840415fc6a53827da2f34337856
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends git gcc-aarch64-linux-gnu libc6-dev-arm64-cross \
+    && rm -rf /var/lib/apt/lists/*
+WORKDIR /src
+RUN git clone https://github.com/rathole-org/rathole.git . \
+    && git checkout "${RATHOLE_REF}"
+# client + noise only: no TLS backend, so no OpenSSL and cheap cross-compilation.
+RUN case "${TARGETARCH}" in \
+        amd64) triple=x86_64-unknown-linux-gnu ;; \
+        arm64) triple=aarch64-unknown-linux-gnu ;; \
+        *) echo >&2 "error: unsupported architecture (${TARGETARCH})"; exit 1 ;; \
+    esac \
+    && rustup target add "${triple}" \
+    && CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc \
+       cargo build --release --locked --no-default-features --features client,noise --target "${triple}" \
+    && install "target/${triple}/release/rathole" /usr/local/bin/rathole
+
 FROM ubuntu:24.04
 
 ARG TARGETARCH
@@ -270,6 +296,9 @@ EXPOSE 22
 
 # Entrypoint starts sshd then runs CMD
 COPY --chmod=755 docker-entrypoint.sh /usr/local/bin/
+
+# rathole client, built in the builder stage above
+COPY --from=rathole-builder /usr/local/bin/rathole /usr/local/bin/rathole
 ENTRYPOINT ["docker-entrypoint.sh"]
 
 # Default command
