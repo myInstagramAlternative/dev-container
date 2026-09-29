@@ -8,7 +8,7 @@ FROM --platform=$BUILDPLATFORM rust:1-bookworm AS rathole-builder
 ARG TARGETARCH
 ENV RATHOLE_REF=a292f7ed5402f840415fc6a53827da2f34337856
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends git gcc-aarch64-linux-gnu \
+    && apt-get install -y --no-install-recommends git gcc-aarch64-linux-gnu libc6-dev-arm64-cross \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /src
 RUN git clone https://github.com/rathole-org/rathole.git . \
