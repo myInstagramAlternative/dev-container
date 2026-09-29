@@ -1,7 +1,7 @@
 FROM ubuntu:24.04
 
 ARG TARGETARCH
-LABEL version="1.0.0"
+LABEL version="1.0.1"
 
 # Set non-interactive mode for apt
 ENV DEBIAN_FRONTEND=noninteractive
@@ -23,6 +23,7 @@ RUN apt-get update && apt-get install -y \
     lsb-release \
     ca-certificates \
     git \
+    procps \
     sudo \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
@@ -51,6 +52,7 @@ RUN git config --system --add safe.directory '*' \
     && chmod 644 /etc/ssh/ssh_host_*
 
 # Install Nushell
+# renovate: datasource=github-releases depName=nushell/nushell
 ENV NUSHELL_VERSION=0.103.0
 RUN case "${TARGETARCH}" in \
     amd64) dockerArch='x86_64-unknown-linux-musl' ;; \
@@ -78,6 +80,7 @@ RUN case "${TARGETARCH}" in \
     && rm -rf nvim-linux-${dockerArch}
 
 # Install zoxide
+# renovate: datasource=github-releases depName=ajeetdsouza/zoxide
 ENV ZOXIDE_VERSION=0.9.8
 RUN case "${TARGETARCH}" in \
     amd64) dockerArch='x86_64-unknown-linux-musl' ;; \
@@ -90,15 +93,27 @@ RUN case "${TARGETARCH}" in \
     && install zoxide /usr/local/bin/
 
 # Install atuin (shell history)
-RUN curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh \
-    && mv /root/.atuin/bin/atuin /usr/local/bin/
+# renovate: datasource=github-releases depName=atuinsh/atuin
+ENV ATUIN_VERSION=18.23.0
+RUN case "${TARGETARCH}" in \
+    amd64) dockerArch='x86_64-unknown-linux-musl' ;; \
+    arm64) dockerArch='aarch64-unknown-linux-musl' ;; \
+    *) echo >&2 "error: unsupported architecture (${TARGETARCH})"; exit 1 ;;\
+    esac; \
+    wget https://github.com/atuinsh/atuin/releases/download/v${ATUIN_VERSION}/atuin-${dockerArch}.tar.gz \
+    && tar -xvf atuin-${dockerArch}.tar.gz \
+    && rm atuin-${dockerArch}.tar.gz \
+    && install atuin-${dockerArch}/atuin /usr/local/bin/ \
+    && rm -rf atuin-${dockerArch}
 
 # Install YQ
+# renovate: datasource=github-releases depName=mikefarah/yq
 ENV YQ_VERSION=4.47.2
 RUN wget https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_${TARGETARCH} -O /usr/local/bin/yq \
     && chmod +x /usr/local/bin/yq
 
 # Install BAT
+# renovate: datasource=github-releases depName=sharkdp/bat
 ENV BAT_VERSION=0.25.0
 RUN case "${TARGETARCH}" in \
     amd64) dockerArch='x86_64-unknown-linux-musl' ;; \
@@ -116,6 +131,7 @@ RUN curl -LO "https://dl.k8s.io/$(curl -L -s https://dl.k8s.io/release/stable.tx
     && install kubectl /usr/local/bin/
 
 # Install fluxcd
+# renovate: datasource=github-releases depName=fluxcd/flux2
 ENV FLUX2_VERSION=2.7.0
 RUN curl -L -o fluxcd.tar.gz https://github.com/fluxcd/flux2/releases/download/v${FLUX2_VERSION}/flux_${FLUX2_VERSION}_linux_${TARGETARCH}.tar.gz \
     && tar -xzf fluxcd.tar.gz \
@@ -123,6 +139,7 @@ RUN curl -L -o fluxcd.tar.gz https://github.com/fluxcd/flux2/releases/download/v
     && mv ./flux /usr/local/bin/
 
 # Install helm
+# renovate: datasource=github-releases depName=helm/helm
 ENV HELM_VERSION=3.19.0
 RUN wget https://get.helm.sh/helm-v${HELM_VERSION}-linux-${TARGETARCH}.tar.gz \
     && tar -xzf helm-v${HELM_VERSION}-linux-${TARGETARCH}.tar.gz \
@@ -130,6 +147,7 @@ RUN wget https://get.helm.sh/helm-v${HELM_VERSION}-linux-${TARGETARCH}.tar.gz \
     && mv linux-${TARGETARCH}/helm /usr/local/bin/
 
 # Install k9s
+# renovate: datasource=github-releases depName=derailed/k9s
 ENV K9S_VERSION=0.50.13
 RUN case "${TARGETARCH}" in \
     amd64) dockerArch='Linux_amd64' ;; \
@@ -142,6 +160,7 @@ RUN case "${TARGETARCH}" in \
     && mv k9s /usr/local/bin/
 
 # Install starship
+# renovate: datasource=github-releases depName=starship/starship
 ENV STARSHIP_VERSION=1.23.0
 RUN case "${TARGETARCH}" in \
     amd64) dockerArch='x86_64-unknown-linux-musl' ;; \
@@ -154,6 +173,7 @@ RUN case "${TARGETARCH}" in \
     && mv starship /usr/local/bin/
 
 # Install Golang
+# renovate: datasource=golang-version depName=golang/go
 ENV GOLANG_VERSION=1.24.1
 RUN wget "https://go.dev/dl/go${GOLANG_VERSION}.linux-${TARGETARCH}.tar.gz" \
     && tar -C /usr/local -xzf go${GOLANG_VERSION}.linux-${TARGETARCH}.tar.gz \
@@ -165,6 +185,13 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y nodejs \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+# OpenCode v2 (beta). Installs the `opencode2` binary; `opencode` is symlinked to it.
+# No v1 install. Config is shared at ~/.config/opencode (V2 translates V1 in-memory).
+# renovate: datasource=npm depName=@opencode-ai/cli
+ENV OPENCODE_VERSION=0.0.0-beta-19271
+RUN npm install -g @opencode-ai/cli@${OPENCODE_VERSION} \
+    && ln -sf "$(npm prefix -g)/bin/opencode2" /usr/local/bin/opencode
 
 # Install Terraform
 RUN wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor > /usr/share/keyrings/hashicorp-archive-keyring.gpg \
@@ -207,10 +234,6 @@ RUN if [ -d /home/jesteibice/.config/nushell/modules ]; then \
 USER jesteibice
 ENV HOME=/home/jesteibice
 
-# renovate: datasource=opencode depName=opencode
-RUN curl -fsSL https://opencode.ai/install | bash -s -- --version 1.1.65
-ENV PATH="$HOME/.opencode/bin:$PATH"
-
 # Install fnm (Fast Node Manager) as jesteibice
 RUN curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell --install-dir $HOME/.local/bin
 
@@ -223,6 +246,7 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --de
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Install Python Poetry as jesteibice
+# renovate: datasource=github-releases depName=python-poetry/poetry
 ENV POETRY_VERSION=1.8.5
 RUN curl -sSL https://install.python-poetry.org | python3 -
 
