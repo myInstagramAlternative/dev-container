@@ -23,6 +23,7 @@ RUN apt-get update && apt-get install -y \
     lsb-release \
     ca-certificates \
     git \
+    procps \
     sudo \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
@@ -185,6 +186,13 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+# OpenCode v2 (beta). Installs the `opencode2` binary; `opencode` is symlinked to it.
+# No v1 install. Config is shared at ~/.config/opencode (V2 translates V1 in-memory).
+# renovate: datasource=npm depName=@opencode-ai/cli
+ENV OPENCODE_VERSION=0.0.0-beta-19271
+RUN npm install -g @opencode-ai/cli@${OPENCODE_VERSION} \
+    && ln -sf "$(npm prefix -g)/bin/opencode2" /usr/local/bin/opencode
+
 # Install Terraform
 RUN wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor > /usr/share/keyrings/hashicorp-archive-keyring.gpg \
     && echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/hashicorp.list \
@@ -225,13 +233,6 @@ RUN if [ -d /home/jesteibice/.config/nushell/modules ]; then \
 # Switch to jesteibice user for user-specific installations
 USER jesteibice
 ENV HOME=/home/jesteibice
-
-# OpenCode v2 (beta). Installs the `opencode2` binary; `opencode` is symlinked to it.
-# No v1 install. Config is shared at ~/.config/opencode (V2 translates V1 in-memory).
-# renovate: datasource=npm depName=@opencode-ai/cli
-ENV OPENCODE_VERSION=0.0.0-beta-19271
-RUN sudo npm install -g @opencode-ai/cli@${OPENCODE_VERSION} \
-    && sudo ln -sf "$(command -v opencode2)" /usr/local/bin/opencode
 
 # Install fnm (Fast Node Manager) as jesteibice
 RUN curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell --install-dir $HOME/.local/bin
