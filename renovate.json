@@ -3,24 +3,21 @@
   "git-submodules": {
     "enabled": true
   },
-  "regexManagers": [
+  "customManagers": [
     {
-      "fileMatch": ["^Dockerfile$"],
+      "customType": "regex",
+      "managerFilePatterns": ["/^Dockerfile$/"],
       "matchStrings": [
-        "# renovate: datasource=(?<datasource>.*?) depName=(?<depName>.*?)( versioning=(?<versioning>.*?))?( extractVersion=(?<extractVersion>.*?))?( registryUrl=(?<registryUrl>.*?))?\\sENV .*?_VERSION=(?<currentValue>.*)\\s"
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\s+ENV \\w+_VERSION=(?<currentValue>\\S+)"
       ],
-      "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}"
-    },
-    {
-      "fileMatch": ["^Dockerfile$"],
-      "matchStrings": [
-        "datasource=opencode depName=opencode.*?--version (?<currentValue>\\d+\\.\\d+\\.\\d+)"
-      ],
-      "depNameTemplate": "opencode",
-      "datasourceTemplate": "github-releases"
+      "versioningTemplate": "semver"
     }
   ],
   "packageRules": [
+    {
+      "matchPackageNames": ["@opencode-ai/cli"],
+      "allowedVersions": "/^0\\.0\\.0-beta-/"
+    },
     {
       "matchPackagePatterns": [".*"],
       "groupName": "All Dependencies"
