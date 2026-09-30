@@ -3,14 +3,24 @@
   "git-submodules": {
     "enabled": true
   },
+  "customDatasources": {
+    "chrome-for-testing": {
+      "defaultRegistryUrlTemplate": "https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json",
+      "format": "json",
+      "defaultVersioning": "loose",
+      "transformTemplates": [
+        "{\"releases\": [{\"version\": channels.Stable.version}]}"
+      ]
+    }
+  },
   "customManagers": [
     {
       "customType": "regex",
       "managerFilePatterns": ["/^Dockerfile$/"],
       "matchStrings": [
-        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\s+ENV \\w+_VERSION=(?<currentValue>\\S+)"
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)( versioning=(?<versioning>\\S+))?\\s+ENV \\w+_VERSION=(?<currentValue>\\S+)"
       ],
-      "versioningTemplate": "semver"
+      "versioningTemplate": "{{#if versioning}}{{{versioning}}}{{else}}semver{{/if}}"
     }
   ],
   "packageRules": [
