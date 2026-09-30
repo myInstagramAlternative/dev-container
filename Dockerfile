@@ -231,6 +231,56 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+# Install Chrome for Testing (headless) for browser automation.
+# Ubuntu's chromium is a snap and does not run in containers, so use the
+# self-contained Chrome for Testing build instead. This is a prerequisite only:
+# the browser-harness CLI and its MCP server are installed per-user in $HOME
+# (they are not baked in, so a ~/.local volume can't shadow them). Launch it
+# with the `chrome-headless` helper; browser-harness/MCP connect via BU_CDP_URL.
+# NOTE: a non-root container usually can't use the Chrome sandbox, so the
+# helper passes --no-sandbox.
+# renovate: datasource=custom.chrome-for-testing depName=chrome versioning=loose
+ENV CHROME_VERSION=154.0.8037.92
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        libnspr4 \
+        libnss3 \
+        libatk1.0-0 \
+        libatk-bridge2.0-0 \
+        libcups2 \
+        libdrm2 \
+        libgbm1 \
+        libasound2t64 \
+        libxkbcommon0 \
+        libxcomposite1 \
+        libxdamage1 \
+        libxfixes3 \
+        libxrandr2 \
+        libpango-1.0-0 \
+        libcairo2 \
+        libatspi2.0-0 \
+        libx11-xcb1 \
+        libxcursor1 \
+        libgtk-3-0t64 \
+        fonts-liberation \
+        xdg-utils \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && case "${TARGETARCH}" in \
+        amd64) chromeArch='linux64' ;; \
+        arm64) chromeArch='linux-arm64' ;; \
+        *) echo >&2 "error: unsupported architecture (${TARGETARCH})"; exit 1 ;; \
+    esac \
+    && wget -q -O /tmp/chrome-for-testing.zip \
+        "https://storage.googleapis.com/chrome-for-testing-public/${CHROME_VERSION}/${chromeArch}/chrome-${chromeArch}.zip" \
+    && unzip -q /tmp/chrome-for-testing.zip -d /opt \
+    && rm /tmp/chrome-for-testing.zip \
+    && ln -s "/opt/chrome-${chromeArch}/chrome" /usr/local/bin/chrome \
+    && chrome --version
+
+# browser-harness / browser-harness-mcp dial this CDP endpoint by default.
+ENV BU_CDP_URL=http://127.0.0.1:9222
+
 # OpenCode v2 (beta). Pinned to the `beta` dist-tag: some untagged snapshots
 # rename the binary (e.g. `lildax`) or ship without a platform binary. Resolve
 # whichever bin exists and smoke-test it, so a rename fails the build loudly
@@ -322,6 +372,9 @@ WORKDIR /home/jesteibice
 
 # Expose SSH port
 EXPOSE 22
+
+# Headless Chrome launcher used by browser-harness / browser-harness-mcp
+COPY --chmod=755 chrome-headless.sh /usr/local/bin/chrome-headless
 
 # Entrypoint starts sshd then runs CMD
 COPY --chmod=755 docker-entrypoint.sh /usr/local/bin/
