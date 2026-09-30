@@ -231,6 +231,12 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+# Install pnpm globally (pinned)
+# renovate: datasource=npm depName=pnpm
+ENV PNPM_VERSION=12.8.1
+RUN npm install -g pnpm@"${PNPM_VERSION}" \
+    && pnpm --version
+
 # Install Chrome for Testing (headless) for browser automation.
 # Ubuntu's chromium is a snap and does not run in containers, so use the
 # self-contained Chrome for Testing build instead. This is a prerequisite only:
