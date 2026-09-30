@@ -6,6 +6,17 @@ if [ ! -f /etc/ssh/ssh_host_ed25519_key ]; then
     sudo ssh-keygen -A
 fi
 
+# Normalise ~/.ssh so sshd's StrictModes accepts it and git/ssh behave.
+# The home may live on a PVC whose files are group-owned (k8s fsGroup), so
+# ownership and modes are fixed on every start. No-op if ~/.ssh is absent.
+if [ -d "$HOME/.ssh" ]; then
+    sudo chown -R "$(id -u):$(id -g)" "$HOME/.ssh" 2>/dev/null || true
+    chmod 700 "$HOME/.ssh" 2>/dev/null || true
+    find "$HOME/.ssh" -maxdepth 1 -type f -name 'id_*' ! -name '*.pub' -exec chmod 600 {} + 2>/dev/null || true
+    find "$HOME/.ssh" -maxdepth 1 -type f -name '*.pub' -exec chmod 644 {} + 2>/dev/null || true
+    chmod 600 "$HOME/.ssh/authorized_keys" "$HOME/.ssh/config" "$HOME/.ssh/known_hosts" 2>/dev/null || true
+fi
+
 # Start the SSH daemon if it is not already running. sshd is optional: a
 # failure here must not stop the dev shell.
 if ! pgrep -x sshd > /dev/null; then
