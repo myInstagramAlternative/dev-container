@@ -1,0 +1,60 @@
+# Alternate compose for testing state-on-volume instead of host bind mounts.
+#
+# Differences vs docker-compose.yml:
+#   - no host binds (~/projects, ~/.azure, ~/.config/opencode, ~/.ssh, docker.sock)
+#   - the whole home lives on a *named volume*
+#
+# Why this works without losing your dotconfig: Docker initialises a fresh
+# named volume from the image directory it is mounted over, preserving
+# ownership. So on first `up`, /home/jesteibice is seeded with the dotconfig
+# baked into the image (owned by jesteibice), then persisted.
+#
+# Caveat: later image changes to dotconfig do NOT propagate into an existing
+# volume (same drift as a k8s PVC). To re-seed, delete the volume:
+#   docker compose -f docker-compose.volume.yml down -v
+#
+# Usage:
+#   docker compose -f docker-compose.volume.yml build
+#   docker compose -f docker-compose.volume.yml run --rm dev
+#
+# rathole is baked into the image. It auto-starts from
+# /etc/rathole/client.toml *only if that file exists*, so by default it is a
+# no-op. To exercise the tunnel, drop a client.toml into the rathole volume:
+#   docker compose -f docker-compose.volume.yml \
+#     run --rm --entrypoint sh dev -c \
+#     'mkdir -p /etc/rathole && cat > /etc/rathole/client.toml <<EOF
+# [client]
+# remote_addr = "your.rathole.host:2333"
+# default_token = "REPLACE"
+# [client.services.opencode]
+# local_addr = "127.0.0.1:4096"
+# EOF'
+
+services:
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        TARGETARCH: arm64
+    # image: dev-container-volume:latest
+    image: ghcr.io/myinstagramalternative/dev-container:latest
+    container_name: dev-container-volume
+    environment:
+      - HOME=/home/jesteibice
+      - TERM=xterm-256color
+      # rathole looks here by default; harmless if the file is absent.
+      - RATHOLE_CONFIG=/etc/rathole/client.toml
+    volumes:
+      # Whole home on a named volume (seeded from the image on first run).
+      - dev-home:/home/jesteibice
+      # Config for the baked-in rathole client. Empty by default -> no-op.
+      - dev-rathole:/etc/rathole
+    working_dir: /home/jesteibice
+    stdin_open: true
+    tty: true
+    command: ["/usr/local/bin/nu"]
+
+volumes:
+  dev-home:
+  dev-rathole:

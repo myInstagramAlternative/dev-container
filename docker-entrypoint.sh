@@ -1,10 +1,15 @@
 #!/bin/bash
 set -e
 
-# Start SSH daemon if not already running.
-# The container runs as the unprivileged dev user, which has passwordless sudo.
+# Generate unique SSH host keys on first start (never baked into the image).
+if [ ! -f /etc/ssh/ssh_host_ed25519_key ]; then
+    sudo ssh-keygen -A
+fi
+
+# Start the SSH daemon if it is not already running. sshd is optional: a
+# failure here must not stop the dev shell.
 if ! pgrep -x sshd > /dev/null; then
-    sudo /usr/sbin/sshd
+    sudo /usr/sbin/sshd || echo "warning: sshd failed to start" >&2
 fi
 
 # Optionally set the dev user's password at runtime, from a secret file only.

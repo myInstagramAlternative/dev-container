@@ -8,7 +8,10 @@ FROM --platform=$BUILDPLATFORM rust:1-bookworm AS rathole-builder
 ARG TARGETARCH
 ENV RATHOLE_REF=a292f7ed5402f840415fc6a53827da2f34337856
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends git gcc-aarch64-linux-gnu libc6-dev-arm64-cross \
+    && apt-get install -y --no-install-recommends git \
+    && if [ "${TARGETARCH}" = "arm64" ] && [ "$(dpkg --print-architecture)" != "arm64" ]; then \
+         apt-get install -y --no-install-recommends gcc-aarch64-linux-gnu libc6-dev-arm64-cross; \
+       fi \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /src
 RUN git clone https://github.com/rathole-org/rathole.git . \
@@ -20,8 +23,10 @@ RUN case "${TARGETARCH}" in \
         *) echo >&2 "error: unsupported architecture (${TARGETARCH})"; exit 1 ;; \
     esac \
     && rustup target add "${triple}" \
-    && CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc \
-       cargo build --release --locked --no-default-features --features client,noise --target "${triple}" \
+    && if [ "${triple}" = "aarch64-unknown-linux-gnu" ] && [ "$(dpkg --print-architecture)" != "arm64" ]; then \
+         export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc; \
+       fi \
+    && cargo build --release --locked --no-default-features --features client,noise --target "${triple}" \
     && install "target/${triple}/release/rathole" /usr/local/bin/rathole
 
 FROM ubuntu:24.04
@@ -61,21 +66,35 @@ RUN add-apt-repository ppa:git-core/ppa -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Configure git and SSH
+# Configure git and SSH.
+# Hardening lives in a drop-in (sshd_config Includes sshd_config.d/*.conf).
+# No host keys are generated or shipped in the image: they are created at
+# runtime in the entrypoint so every container has unique keys.
 RUN git config --system --add safe.directory '*' \
-    && mkdir -p /run/sshd \
-    && sed -i \
-        -e 's/#PubkeyAuthentication yes/PubkeyAuthentication yes/' \
-        -e 's/#PasswordAuthentication yes/PasswordAuthentication no/' \
-        -e 's/#ChallengeResponseAuthentication yes/ChallengeResponseAuthentication no/' \
-        -e 's/#AllowTcpForwarding yes/AllowTcpForwarding yes/' \
-        -e 's/#GatewayPorts no/GatewayPorts yes/' \
-        /etc/ssh/sshd_config \
-    && echo "PasswordAuthentication no" >> /etc/ssh/sshd_config \
-    && echo "ChallengeResponseAuthentication no" >> /etc/ssh/sshd_config \
-    && ssh-keygen -A \
+    && mkdir -p /run/sshd /etc/ssh/sshd_config.d \
+    && printf '%s\n' \
+        'PermitRootLogin no' \
+        'PubkeyAuthentication yes' \
+        'PasswordAuthentication no' \
+        'KbdInteractiveAuthentication no' \
+        'PermitEmptyPasswords no' \
+        'AuthenticationMethods publickey' \
+        'UsePAM no' \
+        'X11Forwarding no' \
+        'AllowAgentForwarding no' \
+        'AllowTcpForwarding yes' \
+        'GatewayPorts no' \
+        'AllowUsers jesteibice' \
+        'MaxAuthTries 3' \
+        'MaxSessions 10' \
+        'LoginGraceTime 20' \
+        'ClientAliveInterval 300' \
+        'ClientAliveCountMax 2' \
+        'PrintMotd no' \
+        > /etc/ssh/sshd_config.d/99-hardening.conf \
+    && chmod 644 /etc/ssh/sshd_config.d/99-hardening.conf \
     && chmod 755 /etc/ssh \
-    && chmod 644 /etc/ssh/ssh_host_*
+    && rm -f /etc/ssh/ssh_host_*
 
 # Install Nushell
 # renovate: datasource=github-releases depName=nushell/nushell
