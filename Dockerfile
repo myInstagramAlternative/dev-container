@@ -32,7 +32,7 @@ RUN case "${TARGETARCH}" in \
 FROM ubuntu:26.04
 
 ARG TARGETARCH
-LABEL version="1.0.1"
+LABEL version="1.1.0"
 
 # Set non-interactive mode for apt
 ENV DEBIAN_FRONTEND=noninteractive
