@@ -16,7 +16,7 @@
   "packageRules": [
     {
       "matchPackageNames": ["@opencode-ai/cli"],
-      "allowedVersions": "/^0\\.0\\.0-beta-/"
+      "followTag": "beta"
     },
     {
       "matchPackagePatterns": [".*"],

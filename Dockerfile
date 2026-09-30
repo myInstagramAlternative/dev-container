@@ -231,12 +231,22 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# OpenCode v2 (beta). Installs the `opencode2` binary; `opencode` is symlinked to it.
-# No v1 install. Config is shared at ~/.config/opencode (V2 translates V1 in-memory).
+# OpenCode v2 (beta). Pinned to the `beta` dist-tag: some untagged snapshots
+# rename the binary (e.g. `lildax`) or ship without a platform binary. Resolve
+# whichever bin exists and smoke-test it, so a rename fails the build loudly
+# instead of leaving a dangling `opencode` symlink.
+# Config is shared at ~/.config/opencode (V2 translates V1 in-memory).
 # renovate: datasource=npm depName=@opencode-ai/cli
-ENV OPENCODE_VERSION=0.0.0-beta-202608110357
-RUN npm install -g @opencode-ai/cli@${OPENCODE_VERSION} \
-    && ln -sf "$(npm prefix -g)/bin/opencode2" /usr/local/bin/opencode
+ENV OPENCODE_VERSION=0.0.0-beta-19271
+RUN set -eux; \
+    npm install -g @opencode-ai/cli@"${OPENCODE_VERSION}"; \
+    bin=""; \
+    for c in opencode2 opencode lildax; do \
+        if command -v "$c" > /dev/null 2>&1; then bin="$c"; break; fi; \
+    done; \
+    [ -n "$bin" ] || { echo >&2 "error: no opencode CLI binary found after install"; exit 1; }; \
+    "$bin" --version; \
+    ln -sf "$(command -v "$bin")" /usr/local/bin/opencode
 
 # Install Terraform
 RUN wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor > /usr/share/keyrings/hashicorp-archive-keyring.gpg \
