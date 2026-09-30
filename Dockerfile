@@ -29,7 +29,7 @@ RUN case "${TARGETARCH}" in \
     && cargo build --release --locked --no-default-features --features client,noise --target "${triple}" \
     && install "target/${triple}/release/rathole" /usr/local/bin/rathole
 
-FROM ubuntu:24.04
+FROM ubuntu:26.04
 
 ARG TARGETARCH
 LABEL version="1.0.1"
@@ -185,7 +185,7 @@ RUN curl -L -o fluxcd.tar.gz https://github.com/fluxcd/flux2/releases/download/v
 
 # Install helm
 # renovate: datasource=github-releases depName=helm/helm
-ENV HELM_VERSION=3.22.0
+ENV HELM_VERSION=4.3.0
 RUN wget https://get.helm.sh/helm-v${HELM_VERSION}-linux-${TARGETARCH}.tar.gz \
     && tar -xzf helm-v${HELM_VERSION}-linux-${TARGETARCH}.tar.gz \
     && rm helm-v${HELM_VERSION}-linux-${TARGETARCH}.tar.gz \
@@ -302,7 +302,7 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Install Python Poetry as jesteibice
 # renovate: datasource=github-releases depName=python-poetry/poetry
-ENV POETRY_VERSION=1.8.5
+ENV POETRY_VERSION=2.5.1
 RUN curl -sSL https://install.python-poetry.org | python3 -
 
 # Create .nu.nu stub, initialize starship and zoxide as jesteibice
