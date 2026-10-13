@@ -98,7 +98,7 @@ RUN git config --system --add safe.directory '*' \
 
 # Install Nushell
 # renovate: datasource=github-releases depName=nushell/nushell
-ENV NUSHELL_VERSION=0.116.0
+ENV NUSHELL_VERSION=0.116.1
 RUN case "${TARGETARCH}" in \
     amd64) dockerArch='x86_64-unknown-linux-musl' ;; \
     arm64) dockerArch='aarch64-unknown-linux-musl' ;; \
@@ -177,7 +177,7 @@ RUN curl -LO "https://dl.k8s.io/$(curl -L -s https://dl.k8s.io/release/stable.tx
 
 # Install fluxcd
 # renovate: datasource=github-releases depName=fluxcd/flux2
-ENV FLUX2_VERSION=2.9.5
+ENV FLUX2_VERSION=2.9.6
 RUN curl -L -o fluxcd.tar.gz https://github.com/fluxcd/flux2/releases/download/v${FLUX2_VERSION}/flux_${FLUX2_VERSION}_linux_${TARGETARCH}.tar.gz \
     && tar -xzf fluxcd.tar.gz \
     && rm fluxcd.tar.gz \
@@ -219,7 +219,7 @@ RUN case "${TARGETARCH}" in \
 
 # Install Golang
 # renovate: datasource=golang-version depName=golang/go
-ENV GOLANG_VERSION=1.27.1
+ENV GOLANG_VERSION=1.27.2
 RUN wget "https://go.dev/dl/go${GOLANG_VERSION}.linux-${TARGETARCH}.tar.gz" \
     && tar -C /usr/local -xzf go${GOLANG_VERSION}.linux-${TARGETARCH}.tar.gz \
     && rm go${GOLANG_VERSION}.linux-${TARGETARCH}.tar.gz
@@ -233,7 +233,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
 
 # Install pnpm globally (pinned)
 # renovate: datasource=npm depName=pnpm
-ENV PNPM_VERSION=12.8.1
+ENV PNPM_VERSION=12.11.2
 RUN npm install -g pnpm@"${PNPM_VERSION}" \
     && pnpm --version
 
