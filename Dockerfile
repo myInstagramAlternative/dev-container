@@ -297,17 +297,17 @@ RUN apt-get update \
 # browser-harness / browser-harness-mcp dial this CDP endpoint by default.
 ENV BU_CDP_URL=http://127.0.0.1:9222
 
-# OpenCode v2 (beta). Pinned to the `beta` dist-tag: some untagged snapshots
-# rename the binary (e.g. `lildax`) or ship without a platform binary. Resolve
-# whichever bin exists and smoke-test it, so a rename fails the build loudly
+# OpenCode v2, pinned to the stable release. The npm wrapper pulls the native
+# binary for the target platform via optionalDependencies. Resolve whichever
+# bin exists and smoke-test it, so a packaging change fails the build loudly
 # instead of leaving a dangling `opencode` symlink.
 # Config is shared at ~/.config/opencode (V2 translates V1 in-memory).
-# renovate: datasource=npm depName=@opencode-ai/cli
-ENV OPENCODE_VERSION=0.0.0-beta-19271
+# renovate: datasource=npm depName=@opencode/cli
+ENV OPENCODE_VERSION=2.0.28
 RUN set -eux; \
-    npm install -g @opencode-ai/cli@"${OPENCODE_VERSION}"; \
+    npm install -g @opencode/cli@"${OPENCODE_VERSION}"; \
     bin=""; \
-    for c in opencode2 opencode lildax; do \
+    for c in opencode opencode2; do \
         if command -v "$c" > /dev/null 2>&1; then bin="$c"; break; fi; \
     done; \
     [ -n "$bin" ] || { echo >&2 "error: no opencode CLI binary found after install"; exit 1; }; \

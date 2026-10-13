@@ -24,10 +24,6 @@
   ],
   "packageRules": [
     {
-      "matchPackageNames": ["@opencode-ai/cli"],
-      "followTag": "beta"
-    },
-    {
       "matchPackagePatterns": [".*"],
       "groupName": "All Dependencies"
     }
