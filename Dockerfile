@@ -56,8 +56,18 @@ RUN apt-get update && apt-get install -y \
     git \
     procps \
     sudo \
+    gnu-coreutils \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+# Ubuntu 26.04 replaced GNU coreutils with uutils coreutils, a Rust multi-call
+# binary. Its Ubuntu patch aborts with "Security violation: Requested utility
+# ... does not match executable name" whenever a utility is invoked through a
+# mismatched argv[0]. BuildKit's qemu emulation for the arm64 build (on the
+# amd64 CI runner) trips this for every `#!/usr/bin/env <interp>` script, e.g.
+# `npm install`, which broke the arm64 image build. GNU env ignores argv[0], so
+# point `env` at the GNU implementation Ubuntu keeps at /usr/bin/gnuenv.
+RUN ln -sf /usr/bin/gnuenv /usr/bin/env
 
 # Install latest git from PPA
 RUN add-apt-repository ppa:git-core/ppa -y \
