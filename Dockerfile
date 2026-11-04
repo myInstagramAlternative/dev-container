@@ -256,7 +256,7 @@ RUN npm install -g pnpm@"${PNPM_VERSION}" \
 # NOTE: a non-root container usually can't use the Chrome sandbox, so the
 # helper passes --no-sandbox.
 # renovate: datasource=custom.chrome-for-testing depName=chrome versioning=loose
-ENV CHROME_VERSION=156.0.8078.80
+ENV CHROME_VERSION=157.0.8103.38
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         libnspr4 \
