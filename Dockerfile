@@ -149,7 +149,7 @@ RUN case "${TARGETARCH}" in \
 
 # Install atuin (shell history)
 # renovate: datasource=github-releases depName=atuinsh/atuin
-ENV ATUIN_VERSION=18.24.4
+ENV ATUIN_VERSION=18.24.5
 RUN case "${TARGETARCH}" in \
     amd64) dockerArch='x86_64-unknown-linux-musl' ;; \
     arm64) dockerArch='aarch64-unknown-linux-musl' ;; \
@@ -163,7 +163,7 @@ RUN case "${TARGETARCH}" in \
 
 # Install YQ
 # renovate: datasource=github-releases depName=mikefarah/yq
-ENV YQ_VERSION=4.54.1
+ENV YQ_VERSION=4.54.2
 RUN wget https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_${TARGETARCH} -O /usr/local/bin/yq \
     && chmod +x /usr/local/bin/yq
 
@@ -243,7 +243,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
 
 # Install pnpm globally (pinned)
 # renovate: datasource=npm depName=pnpm
-ENV PNPM_VERSION=12.16.1
+ENV PNPM_VERSION=12.18.0
 RUN npm install -g pnpm@"${PNPM_VERSION}" \
     && pnpm --version
 
