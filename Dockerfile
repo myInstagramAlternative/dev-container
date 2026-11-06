@@ -32,7 +32,7 @@ RUN case "${TARGETARCH}" in \
 FROM ubuntu:26.04
 
 ARG TARGETARCH
-LABEL version="1.1.0"
+LABEL version="1.2.0"
 
 # Set non-interactive mode for apt
 ENV DEBIAN_FRONTEND=noninteractive
@@ -399,5 +399,5 @@ COPY --chmod=755 docker-entrypoint.sh /usr/local/bin/
 COPY --from=rathole-builder /usr/local/bin/rathole /usr/local/bin/rathole
 ENTRYPOINT ["docker-entrypoint.sh"]
 
-# Default command
-CMD ["/usr/local/bin/nu"]
+# Start the background service, then keep the container alive in the foreground.
+CMD ["/bin/bash", "-c", "opencode service start && exec sleep infinity"]
