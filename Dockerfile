@@ -303,7 +303,7 @@ ENV BU_CDP_URL=http://127.0.0.1:9222
 # instead of leaving a dangling `opencode` symlink.
 # Config is shared at ~/.config/opencode (V2 translates V1 in-memory).
 # renovate: datasource=npm depName=@opencode/cli
-ENV OPENCODE_VERSION=2.2.5
+ENV OPENCODE_VERSION=2.2.6
 RUN set -eux; \
     npm install -g @opencode/cli@"${OPENCODE_VERSION}"; \
     bin=""; \
