@@ -108,7 +108,7 @@ RUN git config --system --add safe.directory '*' \
 
 # Install Nushell
 # renovate: datasource=github-releases depName=nushell/nushell
-ENV NUSHELL_VERSION=0.116.1
+ENV NUSHELL_VERSION=0.117.0
 RUN case "${TARGETARCH}" in \
     amd64) dockerArch='x86_64-unknown-linux-musl' ;; \
     arm64) dockerArch='aarch64-unknown-linux-musl' ;; \
@@ -149,7 +149,7 @@ RUN case "${TARGETARCH}" in \
 
 # Install atuin (shell history)
 # renovate: datasource=github-releases depName=atuinsh/atuin
-ENV ATUIN_VERSION=18.24.5
+ENV ATUIN_VERSION=18.24.8
 RUN case "${TARGETARCH}" in \
     amd64) dockerArch='x86_64-unknown-linux-musl' ;; \
     arm64) dockerArch='aarch64-unknown-linux-musl' ;; \
@@ -163,7 +163,7 @@ RUN case "${TARGETARCH}" in \
 
 # Install YQ
 # renovate: datasource=github-releases depName=mikefarah/yq
-ENV YQ_VERSION=4.54.2
+ENV YQ_VERSION=4.54.3
 RUN wget https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_${TARGETARCH} -O /usr/local/bin/yq \
     && chmod +x /usr/local/bin/yq
 
@@ -195,7 +195,7 @@ RUN curl -L -o fluxcd.tar.gz https://github.com/fluxcd/flux2/releases/download/v
 
 # Install helm
 # renovate: datasource=github-releases depName=helm/helm
-ENV HELM_VERSION=4.3.1
+ENV HELM_VERSION=4.3.2
 RUN wget https://get.helm.sh/helm-v${HELM_VERSION}-linux-${TARGETARCH}.tar.gz \
     && tar -xzf helm-v${HELM_VERSION}-linux-${TARGETARCH}.tar.gz \
     && rm helm-v${HELM_VERSION}-linux-${TARGETARCH}.tar.gz \
@@ -229,7 +229,7 @@ RUN case "${TARGETARCH}" in \
 
 # Install Golang
 # renovate: datasource=golang-version depName=golang/go
-ENV GOLANG_VERSION=1.27.3
+ENV GOLANG_VERSION=1.27.4
 RUN wget "https://go.dev/dl/go${GOLANG_VERSION}.linux-${TARGETARCH}.tar.gz" \
     && tar -C /usr/local -xzf go${GOLANG_VERSION}.linux-${TARGETARCH}.tar.gz \
     && rm go${GOLANG_VERSION}.linux-${TARGETARCH}.tar.gz
@@ -303,7 +303,7 @@ ENV BU_CDP_URL=http://127.0.0.1:9222
 # instead of leaving a dangling `opencode` symlink.
 # Config is shared at ~/.config/opencode (V2 translates V1 in-memory).
 # renovate: datasource=npm depName=@opencode/cli
-ENV OPENCODE_VERSION=2.2.5
+ENV OPENCODE_VERSION=2.3.0
 RUN set -eux; \
     npm install -g @opencode/cli@"${OPENCODE_VERSION}"; \
     bin=""; \
