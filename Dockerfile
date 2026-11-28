@@ -169,7 +169,7 @@ RUN wget https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_lin
 
 # Install BAT
 # renovate: datasource=github-releases depName=sharkdp/bat
-ENV BAT_VERSION=0.26.1
+ENV BAT_VERSION=0.27.0
 RUN case "${TARGETARCH}" in \
     amd64) dockerArch='x86_64-unknown-linux-musl' ;; \
     arm64) dockerArch='aarch64-unknown-linux-musl' ;; \
@@ -303,7 +303,7 @@ ENV BU_CDP_URL=http://127.0.0.1:9222
 # instead of leaving a dangling `opencode` symlink.
 # Config is shared at ~/.config/opencode (V2 translates V1 in-memory).
 # renovate: datasource=npm depName=@opencode/cli
-ENV OPENCODE_VERSION=2.4.1
+ENV OPENCODE_VERSION=2.4.2
 RUN set -eux; \
     npm install -g @opencode/cli@"${OPENCODE_VERSION}"; \
     bin=""; \
